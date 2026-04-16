@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Autorizar Visitas - Vecinos</title>
+    <title>Autorizaciones - Los Algarrobos</title>
     <style>
         body { font-family: sans-serif; background: #e9ecef; padding: 20px; display: flex; justify-content: center; }
         .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; width: 100%; }
         h2 { color: #2c3e50; text-align: center; border-bottom: 2px solid #6610f2; padding-bottom: 10px; }
         label { display: block; margin-top: 15px; font-weight: bold; }
-        input, select { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ced4da; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        input, select { width: 100%; padding: 12px; margin-top: 5px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; font-size: 16px; }
         .btn { width: 100%; padding: 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 25px; background: #6610f2; color: white; font-size: 16px; }
     </style>
 </head>
@@ -18,14 +18,14 @@
         <h2>Autorizar Visita</h2>
         <form id="vecinoForm">
             <input type="hidden" name="origen" value="VECINO">
-            <label>Su Lote / Casa</label>
-            <input type="text" name="lote" placeholder="N° de su unidad" required>
-            <label>DNI del Visitante</label>
+            <label>Su Lote</label>
+            <input type="text" name="lote" required>
+            <label>DNI Visitante</label>
             <input type="number" name="dni" required>
-            <label>Nombre del Visitante</label>
+            <label>Nombre Visitante</label>
             <input type="text" name="nombre" required>
-            <label>Calidad / Tipo</label>
-            <select name="calidad" required>
+            <label>Calidad</label>
+            <select name="calidad">
                 <option value="Visita">Visita Social</option>
                 <option value="Empleada Doméstica">Empleada Doméstica</option>
                 <option value="Jardinero">Jardinero</option>
@@ -36,21 +36,16 @@
             </select>
             <label>Válido hasta</label>
             <input type="date" name="vence" required>
-            <button type="submit" id="btn" class="btn">ENVIAR AUTORIZACIÓN</button>
+            <button type="submit" id="btn" class="btn">ENVIAR</button>
         </form>
     </div>
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbwVdRZ0yDuIL_eF2hpfFnJwWyrFpGVbDHa7TIwO40DaNhZJEX630DbU1NIb2Y_mTU5FjA/exec';
-        const form = document.getElementById('vecinoForm');
-        form.addEventListener('submit', e => {
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbwHwJ1SJnLQzJWI79ity9jyilnLFj8xNYvg6nGVRhUXn-YXJpxtV4fMwiWKav5PxKYi-g/exec';
+        document.getElementById('vecinoForm').addEventListener('submit', e => {
             e.preventDefault();
             document.getElementById('btn').innerText = "Enviando...";
-            fetch(scriptURL, { method: 'POST', body: new FormData(form)})
-                .then(() => {
-                    alert("Autorización enviada correctamente.");
-                    form.reset();
-                    document.getElementById('btn').innerText = "ENVIAR AUTORIZACIÓN";
-                });
+            fetch(scriptURL, { method: 'POST', body: new FormData(e.target)})
+                .then(() => { alert("Autorización enviada"); e.target.reset(); document.getElementById('btn').innerText = "ENVIAR"; });
         });
     </script>
 </body>

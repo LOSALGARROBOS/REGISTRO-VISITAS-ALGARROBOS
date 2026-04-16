@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guardia - Control de Acceso</title>
+    <title>Panel de Seguridad - Los Algarrobos</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 15px; display: flex; justify-content: center; }
         .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 450px; width: 100%; }
-        h2 { text-align: center; color: #1c1e21; margin-bottom: 20px; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        h2 { text-align: center; color: #1c1e21; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
         .search-box { background: #e7f3ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #b2d4ff; }
         .status-msg { text-align: center; font-weight: bold; margin-top: 10px; padding: 10px; border-radius: 5px; display: none; }
         .autorizado { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
@@ -23,14 +23,12 @@
 <body>
     <div class="container">
         <h2>Panel de Guardia</h2>
-        
         <div class="search-box">
             <label>Verificar DNI de Visita:</label>
-            <input type="number" id="dniBusqueda" placeholder="Ingrese DNI para verificar">
+            <input type="number" id="dniBusqueda" placeholder="Ingrese DNI">
             <button type="button" class="btn btn-check" onclick="verificarDNI()">BUSCAR AUTORIZACIÓN</button>
             <div id="resultado" class="status-msg"></div>
         </div>
-
         <form id="visitaForm">
             <input type="hidden" name="origen" value="GUARDIA">
             <label>Movimiento</label>
@@ -51,14 +49,14 @@
             <button type="submit" id="btnEnviar" class="btn btn-save">GUARDAR REGISTRO FINAL</button>
         </form>
     </div>
-
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbzuq3DJDw_83d49MkrbPSTG9nIdPb-OUhiZXIJVZiOpjTarnx4s944yMFaWqzfqOMUx/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxRI7vlZdeJGOp6-CO0uqE2tZ06uU5HU9dIt1bf5HY7mIqHUKHsPL10eMxcFB48XQCGBA/exec';
 
         function verificarDNI() {
             const dni = document.getElementById('dniBusqueda').value;
             const resDiv = document.getElementById('resultado');
             if(!dni) return alert("Ingrese un DNI");
+            
             resDiv.style.display = "block";
             resDiv.className = "status-msg";
             resDiv.innerText = "Consultando...";
@@ -67,18 +65,24 @@
                 .then(response => response.json())
                 .then(data => {
                     if(data.status === "AUTORIZADO") {
-                        resDiv.innerText = `✅ AUTORIZADO: Visita a ${data.lote}`;
-                        resDiv.classList.add("autorizado");
+                        resDiv.innerText = `✅ AUTORIZADO: Lote ${data.lote}`;
+                        resDiv.className = "status-msg autorizado";
                         document.getElementById('nombreField').value = data.nombre;
                         document.getElementById('dniField').value = dni;
                         document.getElementById('loteField').value = data.lote;
+                    } else if(data.status === "VENCIDO") {
+                        resDiv.innerText = `⛔ VENCIDO: ${data.msg}`;
+                        resDiv.className = "status-msg no-autorizado";
+                        document.getElementById('visitaForm').reset();
                     } else {
-                        resDiv.innerText = "❌ NO ENCONTRADO EN AUTORIZACIONES";
-                        resDiv.classList.add("no-autorizado");
+                        resDiv.innerText = "❌ SIN AUTORIZACIÓN PREVIA";
+                        resDiv.className = "status-msg no-autorizado";
                         document.getElementById('dniField').value = dni;
                     }
                 })
-                .catch(error => { resDiv.innerText = "Error de conexión"; });
+                .catch(error => { 
+                    resDiv.innerText = "Error de conexión"; 
+                });
         }
 
         const form = document.getElementById('visitaForm');

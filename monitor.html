@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor de Predio - Los Algarrobos</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; padding: 20px; }
+        .container { background: #34495e; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); width: 100%; max-width: 900px; margin: auto; }
+        h2 { text-align: center; color: #ecf0f1; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .alert-turno { background: #e74c3c; color: white; padding: 20px; border-radius: 8px; font-weight: bold; margin-bottom: 20px; display: none; text-align: center; font-size: 20px; border: 2px solid #c0392b; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #ecf0f1; color: #2c3e50; border-radius: 8px; overflow: hidden; }
+        th, td { border: 1px solid #bdc3c7; padding: 12px; text-align: left; }
+        th { background-color: #3498db; color: white; }
+        .row-alerta { background-color: #f1c40f !important; color: #000; font-weight: bold; }
+        .count-badge { background: #3498db; padding: 5px 15px; border-radius: 20px; font-size: 14px; float: right; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="alertaHorario" class="alert-turno">
+            ⚠️ ALERTA: PERSONAL TRABAJANDO FUERA DE HORA
+        </div>
+        <h2>Personas en el Predio <span id="contador" class="count-badge">0</span></h2>
+        
+        <table id="tablaAdentro">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Calidad/Tipo</th>
+                    <th>Lote</th>
+                    <th>Hora Ingreso</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+    </div>
+
+    <script>
+        const scriptURL = 'TU_URL_DE_APPS_SCRIPT_AQUI';
+
+        function esHoraRestringida() {
+            const ahora = new Date();
+            const hora = parseInt(ahora.toLocaleString("es-AR", {hour: '2-digit', hour12: false, timeZone: "America/Argentina/Buenos_Aires"}));
+            return hora >= 18 || hora < 7;
+        }
+
+        function actualizarMonitor() {
+            const tbody = document.querySelector("#tablaAdentro tbody");
+            const alertaBox = document.getElementById("alertaHorario");
+            const contador = document.getElementById("contador");
+
+            fetch(`${scriptURL}?accion=getAdentro`)
+                .then(res => res.json())
+                .then(data => {
+                    tbody.innerHTML = "";
+                    let alertaActiva = false;
+                    const restringido = esHoraRestringida();
+                    
+                    // Solo mostramos los últimos 100 (aunque el script ya los filtra)
+                    const ultimos100 = data.slice(-100);
+                    contador.innerText = ultimos100.length;
+
+                    ultimos100.forEach(p => {
+                        let fila = document.createElement("tr");
+                        if (p.calidad !== "Visita" && restringido) { 
+                            fila.className = "row-alerta"; 
+                            alertaActiva = true; 
+                        }
+                        fila.innerHTML = `<td>${p.nombre}</td><td>${p.calidad}</td><td>${p.lote}</td><td>${p.hora}</td>`;
+                        tbody.appendChild(fila);
+                    });
+                    alertaBox.style.display = alertaActiva ? "block" : "none";
+                });
+        }
+
+        // Actualiza cada 30 segundos automáticamente
+        actualizarMonitor();
+        setInterval(actualizarMonitor, 30000);
+    </script>
+</body>
+</html>

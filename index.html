@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Seguridad - Los Algarrobos</title>
+    <title>Guardia - Los Algarrobos</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 15px; display: flex; justify-content: center; }
         .container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 450px; width: 100%; }
@@ -17,7 +17,6 @@
         .btn { width: 100%; padding: 15px; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; margin-top: 10px; font-size: 16px; }
         .btn-check { background: #007bff; color: white; }
         .btn-save { background: #28a745; color: white; margin-top: 20px; }
-        .btn:disabled { background: #ccc; }
     </style>
 </head>
 <body>
@@ -38,6 +37,16 @@
             </select>
             <label>Nombre Visitante</label>
             <input type="text" name="nombre" id="nombreField" required>
+            <label>Calidad / Tipo</label>
+            <select name="calidad" id="calidadField" required>
+                <option value="Visita">Visita Social</option>
+                <option value="Empleada Doméstica">Empleada Doméstica</option>
+                <option value="Jardinero">Jardinero</option>
+                <option value="Carpintero">Carpintero</option>
+                <option value="Albañil">Albañil</option>
+                <option value="Plomero">Plomero</option>
+                <option value="Otros">Otros</option>
+            </select>
             <label>DNI</label>
             <input type="number" name="dni" id="dniField" required>
             <label>Lote</label>
@@ -50,38 +59,32 @@
         </form>
     </div>
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbxRI7vlZdeJGOp6-CO0uqE2tZ06uU5HU9dIt1bf5HY7mIqHUKHsPL10eMxcFB48XQCGBA/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbwVdRZ0yDuIL_eF2hpfFnJwWyrFpGVbDHa7TIwO40DaNhZJEX630DbU1NIb2Y_mTU5FjA/exec';
 
         function verificarDNI() {
             const dni = document.getElementById('dniBusqueda').value;
             const resDiv = document.getElementById('resultado');
             if(!dni) return alert("Ingrese un DNI");
-            
-            resDiv.style.display = "block";
-            resDiv.className = "status-msg";
-            resDiv.innerText = "Consultando...";
+            resDiv.style.display = "block"; resDiv.className = "status-msg"; resDiv.innerText = "Consultando...";
 
             fetch(`${scriptURL}?dni=${dni}`)
                 .then(response => response.json())
                 .then(data => {
                     if(data.status === "AUTORIZADO") {
-                        resDiv.innerText = `✅ AUTORIZADO: Lote ${data.lote}`;
+                        resDiv.innerText = `✅ AUTORIZADO: ${data.calidad} a Lote ${data.lote}`;
                         resDiv.className = "status-msg autorizado";
                         document.getElementById('nombreField').value = data.nombre;
                         document.getElementById('dniField').value = dni;
                         document.getElementById('loteField').value = data.lote;
+                        document.getElementById('calidadField').value = data.calidad;
                     } else if(data.status === "VENCIDO") {
                         resDiv.innerText = `⛔ VENCIDO: ${data.msg}`;
                         resDiv.className = "status-msg no-autorizado";
-                        document.getElementById('visitaForm').reset();
                     } else {
-                        resDiv.innerText = "❌ SIN AUTORIZACIÓN PREVIA";
+                        resDiv.innerText = "❌ SIN AUTORIZACIÓN";
                         resDiv.className = "status-msg no-autorizado";
                         document.getElementById('dniField').value = dni;
                     }
-                })
-                .catch(error => { 
-                    resDiv.innerText = "Error de conexión"; 
                 });
         }
 
@@ -89,16 +92,13 @@
         form.addEventListener('submit', e => {
             e.preventDefault();
             const btn = document.getElementById('btnEnviar');
-            btn.disabled = true;
-            btn.innerText = "Guardando...";
+            btn.disabled = true; btn.innerText = "Guardando...";
             fetch(scriptURL, { method: 'POST', body: new FormData(form)})
                 .then(() => {
                     alert("¡Registro guardado!");
                     form.reset();
                     document.getElementById('resultado').style.display = "none";
-                    document.getElementById('dniBusqueda').value = "";
-                    btn.disabled = false;
-                    btn.innerText = "GUARDAR REGISTRO FINAL";
+                    btn.disabled = false; btn.innerText = "GUARDAR REGISTRO FINAL";
                 });
         });
     </script>

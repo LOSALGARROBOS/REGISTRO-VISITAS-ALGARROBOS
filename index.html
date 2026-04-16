@@ -41,3 +41,64 @@
                 <option value="Visita">Visita Social</option>
                 <option value="Empleada Doméstica">Empleada Doméstica</option>
                 <option value="Jardinero">Jardinero</option>
+                <option value="Carpintero">Carpintero</option>
+                <option value="Albañil">Albañil</option>
+                <option value="Plomero">Plomero</option>
+                <option value="Otros">Otros</option>
+            </select>
+            <label>DNI</label>
+            <input type="number" name="dni" id="dniField" required>
+            <label>Lote</label>
+            <input type="text" name="lote" id="loteField" required>
+            <label>Patente</label>
+            <input type="text" name="patente" placeholder="Opcional">
+            <label>Observaciones</label>
+            <input type="text" name="observaciones" placeholder="Opcional">
+            <button type="submit" id="btnEnviar" class="btn-green">GUARDAR REGISTRO</button>
+        </form>
+    </div>
+    <script>
+        const scriptURL = 'https://script.google.com/macros/s/AKfycby26ncJJ4Mgy8m1WCBN5m6Re1nFUM-4fWdQrQmweqlP05072bysOrKy7bBzVs1Slc93_g/exec';
+
+        function verificarDNI() {
+            const dni = document.getElementById('dniBusqueda').value;
+            const resDiv = document.getElementById('resultado');
+            if(!dni) return alert("Ingrese un DNI");
+            resDiv.style.display = "block"; resDiv.className = "status-msg"; resDiv.innerText = "Buscando...";
+
+            fetch(`${scriptURL}?dni=${dni}`)
+                .then(res => res.json())
+                .then(data => {
+                    if(data.status === "AUTORIZADO") {
+                        resDiv.innerText = `✅ AUTORIZADO: ${data.calidad} - Lote ${data.lote}`;
+                        resDiv.className = "status-msg autorizado";
+                        document.getElementById('nombreField').value = data.nombre;
+                        document.getElementById('dniField').value = dni;
+                        document.getElementById('loteField').value = data.lote;
+                        document.getElementById('calidadField').value = data.calidad;
+                    } else if(data.status === "VENCIDO") {
+                        resDiv.innerText = `⛔ VENCIDO: ${data.msg}`;
+                        resDiv.className = "status-msg no-autorizado";
+                    } else {
+                        resDiv.innerText = "❌ SIN AUTORIZACIÓN";
+                        resDiv.className = "status-msg no-autorizado";
+                        document.getElementById('dniField').value = dni;
+                    }
+                });
+        }
+
+        document.getElementById('visitaForm').addEventListener('submit', e => {
+            e.preventDefault();
+            const btn = document.getElementById('btnEnviar');
+            btn.disabled = true; btn.innerText = "Enviando...";
+            fetch(scriptURL, { method: 'POST', body: new FormData(e.target)})
+                .then(() => {
+                    alert("¡Registro Exitoso!");
+                    e.target.reset();
+                    document.getElementById('resultado').style.display = "none";
+                    btn.disabled = false; btn.innerText = "GUARDAR REGISTRO";
+                });
+        });
+    </script>
+</body>
+</html>

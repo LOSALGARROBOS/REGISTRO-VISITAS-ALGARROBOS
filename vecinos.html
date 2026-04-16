@@ -11,7 +11,6 @@
         label { display: block; margin-top: 15px; font-weight: bold; }
         input { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #ced4da; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
         .btn { width: 100%; padding: 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 25px; background: #6610f2; color: white; font-size: 16px; }
-        .btn:disabled { background: #ccc; }
     </style>
 </head>
 <body>
@@ -19,44 +18,28 @@
         <h2>Autorizar Visita</h2>
         <form id="vecinoForm">
             <input type="hidden" name="origen" value="VECINO">
-            
             <label>Su Lote / Casa</label>
             <input type="text" name="lote" placeholder="N° de su unidad" required>
-
             <label>DNI del Visitante</label>
-            <input type="number" name="dni" placeholder="DNI del invitado" required>
-
+            <input type="number" name="dni" placeholder="Sin puntos" required>
             <label>Nombre del Visitante</label>
-            <input type="text" name="nombre" placeholder="Nombre y Apellido" required>
-
-            <label>Fecha de la Visita</label>
+            <input type="text" name="nombre" placeholder="Nombre completo" required>
+            <label>Válido hasta (Fecha)</label>
             <input type="date" name="vence" required>
-
             <button type="submit" id="btn" class="btn">ENVIAR AUTORIZACIÓN</button>
         </form>
     </div>
     <script>
-       
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbzuq3DJDw_83d49MkrbPSTG9nIdPb-OUhiZXIJVZiOpjTarnx4s944yMFaWqzfqOMUx/exec';
-        
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbxRI7vlZdeJGOp6-CO0uqE2tZ06uU5HU9dIt1bf5HY7mIqHUKHsPL10eMxcFB48XQCGBA/exec';
         const form = document.getElementById('vecinoForm');
         form.addEventListener('submit', e => {
             e.preventDefault();
-            const btn = document.getElementById('btn');
-            btn.disabled = true;
-            btn.innerText = "Enviando...";
-            
+            document.getElementById('btn').innerText = "Enviando...";
             fetch(scriptURL, { method: 'POST', body: new FormData(form)})
                 .then(() => {
-                    alert("Autorización enviada con éxito.");
+                    alert("Autorización enviada correctamente.");
                     form.reset();
-                    btn.disabled = false;
-                    btn.innerText = "ENVIAR AUTORIZACIÓN";
-                })
-                .catch(() => {
-                    alert("Error al enviar. Intente de nuevo.");
-                    btn.disabled = false;
-                    btn.innerText = "ENVIAR AUTORIZACIÓN";
+                    document.getElementById('btn').innerText = "ENVIAR AUTORIZACIÓN";
                 });
         });
     </script>

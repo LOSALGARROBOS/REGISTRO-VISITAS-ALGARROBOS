@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monitor en Predio - Los Algarrobos</title>
+    <title>Monitor - Los Algarrobos</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #1a1a1a; color: white; padding: 20px; }
-        .container { background: #262626; padding: 20px; border-radius: 12px; max-width: 900px; margin: auto; }
-        h2 { text-align: center; color: #007bff; border-bottom: 2px solid #444; padding-bottom: 10px; }
-        .alert-turno { background: #d9534f; color: white; padding: 20px; border-radius: 8px; font-weight: bold; margin-bottom: 20px; display: none; text-align: center; font-size: 22px; border: 2px solid #a94442; }
+        .container { background: #262626; padding: 20px; border-radius: 12px; max-width: 1000px; margin: auto; }
+        h2 { text-align: center; color: #007bff; border-bottom: 2px solid #444; padding-bottom: 10px; margin-top: 0; }
+        .alert-turno { background: #d9534f; color: white; padding: 20px; border-radius: 8px; font-weight: bold; margin-bottom: 20px; display: none; text-align: center; font-size: 22px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #333; }
         th, td { border: 1px solid #444; padding: 12px; text-align: left; }
         th { background-color: #007bff; color: white; }
@@ -18,9 +18,7 @@
 </head>
 <body>
     <div class="container">
-        <div id="alertaHorario" class="alert-turno">
-            ⚠️ ATENCIÓN: PERSONAL TRABAJANDO FUERA DE HORA (Post 18:00hs)
-        </div>
+        <div id="alertaHorario" class="alert-turno">⚠️ ATENCIÓN: PERSONAL TRABAJANDO FUERA DE HORA</div>
         <h2>Gente en Predio <span id="contador" class="count">0</span></h2>
         <table id="tablaAdentro">
             <thead>
@@ -28,6 +26,7 @@
                     <th>Nombre</th>
                     <th>Calidad</th>
                     <th>Lote</th>
+                    <th>Patente</th>
                     <th>Ingreso</th>
                 </tr>
             </thead>
@@ -35,14 +34,12 @@
         </table>
     </div>
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycby26ncJJ4Mgy8m1WCBN5m6Re1nFUM-4fWdQrQmweqlP05072bysOrKy7bBzVs1Slc93_g/exec';
-
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbwha5jW5OTt63tQzjL6b51Lp9HASHPG6QUC9hkdZHELqLSUtnfT9khHJURO3pZOTPT-/exec';
         function esHoraRestringida() {
             const ahora = new Date();
             const hora = parseInt(ahora.toLocaleString("es-AR", {hour: '2-digit', hour12: false, timeZone: "America/Argentina/Buenos_Aires"}));
             return hora >= 18 || hora < 7;
         }
-
         function actualizar() {
             fetch(`${scriptURL}?accion=getAdentro`)
                 .then(res => res.json())
@@ -52,22 +49,18 @@
                     tbody.innerHTML = "";
                     let hayAlerta = false;
                     const restringido = esHoraRestringida();
-                    
                     document.getElementById("contador").innerText = data.length;
-
                     data.forEach(p => {
                         let fila = document.createElement("tr");
-                        if (p.calidad !== "Visita" && restringido) { 
-                            fila.className = "row-alerta"; hayAlerta = true; 
-                        }
-                        fila.innerHTML = `<td>${p.nombre}</td><td>${p.calidad}</td><td>${p.lote}</td><td>${p.hora}</td>`;
+                        if (p.calidad !== "Visita" && restringido) { fila.className = "row-alerta"; hayAlerta = true; }
+                        fila.innerHTML = `<td>${p.nombre}</td><td>${p.calidad}</td><td>${p.lote}</td><td>${p.patente || '-'}</td><td>${p.hora}</td>`;
                         tbody.appendChild(fila);
                     });
                     alertaBox.style.display = hayAlerta ? "block" : "none";
                 });
         }
         actualizar();
-        setInterval(actualizar, 30000); // Auto-refresca cada 30 seg
+        setInterval(actualizar, 30000);
     </script>
 </body>
 </html>

@@ -36,16 +36,19 @@
         </form>
     </div>
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbzuq3DJDw_83d49MkrbPSTG9nIdPb-OUhiZXIJVZiOpjTarnx4s944yMFaWqzfqOMUx/exec';
+        // REEMPLAZA CON TU URL DE GOOGLE APPS SCRIPT
+        const scriptURL = 'TU_URL_DE_APPS_SCRIPT_AQUI';
+        
         const form = document.getElementById('vecinoForm');
         form.addEventListener('submit', e => {
             e.preventDefault();
             const btn = document.getElementById('btn');
             btn.disabled = true;
             btn.innerText = "Enviando...";
+            
             fetch(scriptURL, { method: 'POST', body: new FormData(form)})
                 .then(() => {
-                    alert("Autorización enviada con éxito. El guardia podrá verla al instante.");
+                    alert("Autorización enviada con éxito.");
                     form.reset();
                     btn.disabled = false;
                     btn.innerText = "ENVIAR AUTORIZACIÓN";

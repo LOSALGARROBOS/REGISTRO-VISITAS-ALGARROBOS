@@ -31,13 +31,16 @@
         <form id="visitaForm">
             <div id="relojGuardia" class="info-fecha">Cargando fecha...</div>
             <input type="hidden" name="origen" value="GUARDIA">
+            
             <label>Movimiento</label>
             <select name="movimiento">
                 <option value="INGRESO">🟢 INGRESO</option>
                 <option value="SALIDA">🔴 SALIDA</option>
             </select>
+
             <label>Nombre y Apellido</label>
             <input type="text" name="nombre" id="nombreField" required>
+
             <label>Calidad</label>
             <select name="calidad" id="calidadField">
                 <option value="Visita">Visita Social</option>
@@ -48,17 +51,23 @@
                 <option value="Plomero">Plomero</option>
                 <option value="Otros">Otros</option>
             </select>
+
             <label>DNI</label>
             <input type="number" name="dni" id="dniField" required>
+
             <label>Lote</label>
             <input type="text" name="lote" id="loteField" required>
+
             <label>Patente</label>
             <input type="text" name="patente">
+
             <label>Observaciones</label>
             <input type="text" name="observaciones">
+
             <button type="submit" id="btnEnviar" class="btn-save">REGISTRAR MOVIMIENTO</button>
         </form>
     </div>
+
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbwha5jW5OTt63tQzjL6b51Lp9HASHPG6QUC9hkdZHELqLSUtnfT9khHJURO3pZOTPT-/exec';
         
@@ -74,7 +83,11 @@
             const dni = document.getElementById('dniBusqueda').value;
             const resDiv = document.getElementById('resultado');
             if(!dni) return alert("Ingrese DNI");
-            resDiv.style.display = "block"; resDiv.className = "status-msg"; resDiv.innerText = "Buscando...";
+            
+            resDiv.style.display = "block"; 
+            resDiv.className = "status-msg"; 
+            resDiv.innerText = "Buscando...";
+            
             fetch(`${scriptURL}?dni=${dni}`)
                 .then(res => res.json())
                 .then(data => {
@@ -96,14 +109,22 @@
         document.getElementById('visitaForm').addEventListener('submit', e => {
             e.preventDefault();
             const btn = document.getElementById('btnEnviar');
-            btn.disabled = true; btn.innerText = "Guardando...";
+            btn.disabled = true; 
+            btn.innerText = "Guardando...";
+            
             fetch(scriptURL, { method: 'POST', body: new FormData(e.target)})
                 .then(() => { 
-                    alert("Guardado"); 
+                    alert("Movimiento registrado con éxito."); 
                     e.target.reset(); 
                     document.getElementById('resultado').style.display = "none";
                     document.getElementById('dniBusqueda').value = "";
-                    btn.disabled = false; btn.innerText = "REGISTRAR MOVIMIENTO"; 
+                    btn.disabled = false; 
+                    btn.innerText = "REGISTRAR MOVIMIENTO"; 
+                })
+                .catch(err => {
+                    alert("Error en el registro.");
+                    btn.disabled = false;
+                    btn.innerText = "REGISTRAR MOVIMIENTO";
                 });
         });
     </script>

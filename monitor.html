@@ -60,7 +60,7 @@
 
         function esFinDeSemana() {
             const ahora = new Date();
-            const diaSemana = ahora.getDay(); // 0 es domingo, 6 es sábado
+            const diaSemana = ahora.getDay();
             return (diaSemana === 0 || diaSemana === 6);
         }
 
@@ -101,20 +101,12 @@
                         const esDeHoy = p.fecha === hoyTexto;
                         const diferenciaDias = (ahora - fechaIngreso) / (1000 * 60 * 60 * 24);
 
-                        // Definimos quiénes NO son visita ni domésticas (el resto es personal de obra/mantenimiento)
                         const esPersonalDeObra = !["Visita", "Empleada Doméstica"].includes(p.calidad);
 
-                        // --- LÓGICA DE ALERTAS ---
-                        
-                        // 1. ROJO CRÍTICO: 
-                        // - Si es personal de obra y es fin de semana.
-                        // - Si es personal de obra y está fuera de horario (7 a 18hs).
-                        // - Si es personal de obra y quedó de un día anterior.
                         if (esPersonalDeObra && (esFinde || restringidoHora || !esDeHoy)) {
                             fila.className = "row-critico";
                             alertaActiva = true;
                         } 
-                        // 2. AMARILLO: Visitas que llevan más de 2 días.
                         else if (p.calidad === "Visita" && diferenciaDias >= 2) {
                             fila.className = "row-antiguo";
                         }

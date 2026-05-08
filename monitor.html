@@ -16,11 +16,11 @@
         th, td { border: 1px solid #444; padding: 12px; text-align: left; }
         th { background-color: #007bff; color: white; text-transform: uppercase; font-size: 13px; }
         
-        /* Color para personal fuera de hora (Naranja) */
-        .row-alerta { background-color: #f39c12 !important; color: #000 !important; font-weight: bold; }
-        
-        /* Color para gente hace más de 2 días (Amarillo fuerte) */
+        /* Prioridad: Más de 2 días (Amarillo) */
         .row-antiguo { background-color: #f1c40f !important; color: #000 !important; font-weight: bold; }
+        
+        /* Personal fuera de hora (Naranja) */
+        .row-alerta { background-color: #f39c12 !important; color: #000 !important; font-weight: bold; }
         
         .count { background: #007bff; padding: 2px 12px; border-radius: 15px; font-size: 16px; margin-left: 10px; }
         tr:nth-child(even) { background-color: #2b2b2b; }
@@ -75,22 +75,32 @@
 
                     document.getElementById("contador").innerText = data.length;
                     
-                    // Ordenamos: Los últimos en entrar (más nuevos) aparecen arriba
-                    data.reverse();
+                    // --- NUEVA LÓGICA DE ORDENAMIENTO ---
+                    data.sort((a, b) => {
+                        const [diaA, mesA, anioA] = a.fecha.split('/');
+                        const [horaA, minA] = a.hora.split(':');
+                        const dateA = new Date(anioA, mesA - 1, diaA, horaA, minA);
+
+                        const [diaB, mesB, anioB] = b.fecha.split('/');
+                        const [horaB, minB] = b.hora.split(':');
+                        const dateB = new Date(anioB, mesB - 1, diaB, horaB, minB);
+
+                        return dateB - dateA; // De más reciente a más antiguo
+                    });
 
                     data.forEach(p => {
                         let fila = document.createElement("tr");
                         
-                        // Lógica de Alerta por tiempo (más de 2 días)
-                        // Convertimos la fecha de p.fecha (DD/MM/YYYY) a formato Date
+                        // Parsear fecha para alertas
                         const partesFecha = p.fecha.split('/');
                         const fechaIngreso = new Date(partesFecha[2], partesFecha[1] - 1, partesFecha[0]);
                         const diferenciaDias = (ahora - fechaIngreso) / (1000 * 60 * 60 * 24);
 
+                        // Aplicar estilos
                         if (diferenciaDias >= 2) {
-                            fila.className = "row-antiguo"; // Resalta en Amarillo
+                            fila.className = "row-antiguo";
                         } else if (p.calidad !== "Visita" && restringido) {
-                            fila.className = "row-alerta"; // Resalta en Naranja (Fuera de hora)
+                            fila.className = "row-alerta";
                             hayAlertaTurno = true;
                         }
 
@@ -112,7 +122,7 @@
         setInterval(actualizarReloj, 1000);
         actualizarReloj();
         actualizar();
-        setInterval(actualizar, 30000); // Se actualiza cada 30 segundos
+        setInterval(actualizar, 30000);
     </script>
 </body>
 </html>

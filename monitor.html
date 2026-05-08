@@ -19,7 +19,7 @@
         th, td { border: 1px solid #444; padding: 12px; text-align: left; }
         th { background-color: #007bff; color: white; text-transform: uppercase; font-size: 13px; }
         
-        /* ROJO: Personal de trabajo fuera de hora */
+        /* ROJO: Personal de trabajo fuera de hora o de días anteriores */
         .row-critico { background-color: #ff0000 !important; color: #fff !important; font-weight: bold; }
         
         /* AMARILLO: Visitas de más de 2 días */
@@ -36,7 +36,7 @@
             <div id="relojActual" class="reloj">Cargando...</div>
         </div>
         
-        <div id="alertaHorario" class="alert-turno">⚠️ ¡ALERTA! PERSONAL DE TRABAJO FUERA DE HORARIO DETECTADO ⚠️</div>
+        <div id="alertaHorario" class="alert-turno">⚠️ ¡ALERTA! PERSONAL DE TRABAJO EN HORARIO O DÍA NO PERMITIDO ⚠️</div>
         
         <table id="tablaAdentro">
             <thead>
@@ -75,9 +75,11 @@
                     const tbody = document.querySelector("#tablaAdentro tbody");
                     const alertaBox = document.getElementById("alertaHorario");
                     tbody.innerHTML = "";
-                    let hayPersonalFueraDeHora = false;
-                    const restringido = esHoraRestringida();
+                    let alertaActiva = false;
+                    
                     const ahora = new Date();
+                    const hoyTexto = ahora.toLocaleDateString('es-AR', { timeZone: "America/Argentina/Buenos_Aires" });
+                    const restringido = esHoraRestringida();
 
                     document.getElementById("contador").innerText = data.length;
                     
@@ -92,18 +94,25 @@
 
                     data.forEach(p => {
                         let fila = document.createElement("tr");
+                        
+                        // Parsear fechas para comparar
                         const partesFecha = p.fecha.split('/');
                         const fechaIngreso = new Date(partesFecha[2], partesFecha[1] - 1, partesFecha[0]);
+                        const esDeHoy = p.fecha === hoyTexto;
                         const diferenciaDias = (ahora - fechaIngreso) / (1000 * 60 * 60 * 24);
 
                         const esPersonalDeTrabajo = ["Jardinero", "Piletero", "Carpintero", "Albañil", "Plomero", "Empleada Doméstica", "Otros"].includes(p.calidad);
 
-                        // LÓGICA DE COLORES
-                        if (esPersonalDeTrabajo && restringido) {
-                            fila.className = "row-critico"; // ROJO
-                            hayPersonalFueraDeHora = true;
-                        } else if (p.calidad === "Visita" && diferenciaDias >= 2) {
-                            fila.className = "row-antiguo"; // AMARILLO
+                        // --- NUEVA LÓGICA DE ALERTAS ---
+                        
+                        // 1. ROJO CRÍTICO: Personal de trabajo fuera de hora HOY O que quedó de días anteriores
+                        if (esPersonalDeTrabajo && (restringido || !esDeHoy)) {
+                            fila.className = "row-critico";
+                            alertaActiva = true;
+                        } 
+                        // 2. AMARILLO: Solo Visitas con más de 2 días adentro
+                        else if (p.calidad === "Visita" && diferenciaDias >= 2) {
+                            fila.className = "row-antiguo";
                         }
 
                         fila.innerHTML = `
@@ -117,7 +126,7 @@
                         tbody.appendChild(fila);
                     });
                     
-                    alertaBox.style.display = hayPersonalFueraDeHora ? "block" : "none";
+                    alertaBox.style.display = alertaActiva ? "block" : "none";
                 });
         }
 

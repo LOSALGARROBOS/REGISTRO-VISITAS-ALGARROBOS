@@ -11,11 +11,19 @@
         .reloj { font-size: 18px; color: #007bff; font-weight: bold; background: #333; padding: 10px 20px; border-radius: 8px; border: 1px solid #444; }
         h2 { margin: 0; color: #ecf0f1; font-size: 24px; }
         .alert-turno { background: #d9534f; color: white; padding: 20px; border-radius: 8px; font-weight: bold; margin-bottom: 20px; display: none; text-align: center; font-size: 22px; }
+        
         table { width: 100%; border-collapse: collapse; background: #333; }
         th, td { border: 1px solid #444; padding: 12px; text-align: left; }
         th { background-color: #007bff; color: white; text-transform: uppercase; font-size: 13px; }
-        .row-alerta { background-color: #f0ad4e !important; color: #000 !important; font-weight: bold; }
+        
+        /* Color para personal fuera de hora (Naranja) */
+        .row-alerta { background-color: #f39c12 !important; color: #000 !important; font-weight: bold; }
+        
+        /* Color para gente hace más de 2 días (Amarillo fuerte) */
+        .row-antiguo { background-color: #f1c40f !important; color: #000 !important; font-weight: bold; }
+        
         .count { background: #007bff; padding: 2px 12px; border-radius: 15px; font-size: 16px; margin-left: 10px; }
+        tr:nth-child(even) { background-color: #2b2b2b; }
     </style>
 </head>
 <body>
@@ -61,23 +69,50 @@
                     const tbody = document.querySelector("#tablaAdentro tbody");
                     const alertaBox = document.getElementById("alertaHorario");
                     tbody.innerHTML = "";
-                    let hayAlerta = false;
+                    let hayAlertaTurno = false;
                     const restringido = esHoraRestringida();
+                    const ahora = new Date();
+
                     document.getElementById("contador").innerText = data.length;
                     
+                    // Ordenamos: Los últimos en entrar (más nuevos) aparecen arriba
+                    data.reverse();
+
                     data.forEach(p => {
                         let fila = document.createElement("tr");
-                        if (p.calidad !== "Visita" && restringido) { fila.className = "row-alerta"; hayAlerta = true; }
-                        fila.innerHTML = `<td>${p.fecha || '-'}</td><td>${p.hora}</td><td>${p.nombre}</td><td>${p.calidad}</td><td>${p.lote}</td><td>${p.patente || '-'}</td>`;
+                        
+                        // Lógica de Alerta por tiempo (más de 2 días)
+                        // Convertimos la fecha de p.fecha (DD/MM/YYYY) a formato Date
+                        const partesFecha = p.fecha.split('/');
+                        const fechaIngreso = new Date(partesFecha[2], partesFecha[1] - 1, partesFecha[0]);
+                        const diferenciaDias = (ahora - fechaIngreso) / (1000 * 60 * 60 * 24);
+
+                        if (diferenciaDias >= 2) {
+                            fila.className = "row-antiguo"; // Resalta en Amarillo
+                        } else if (p.calidad !== "Visita" && restringido) {
+                            fila.className = "row-alerta"; // Resalta en Naranja (Fuera de hora)
+                            hayAlertaTurno = true;
+                        }
+
+                        fila.innerHTML = `
+                            <td>${p.fecha || '-'}</td>
+                            <td>${p.hora}</td>
+                            <td>${p.nombre}</td>
+                            <td>${p.calidad}</td>
+                            <td>${p.lote}</td>
+                            <td>${p.patente || '-'}</td>
+                        `;
                         tbody.appendChild(fila);
                     });
-                    alertaBox.style.display = hayAlerta ? "block" : "none";
+                    
+                    alertaBox.style.display = hayAlertaTurno ? "block" : "none";
                 });
         }
+
         setInterval(actualizarReloj, 1000);
         actualizarReloj();
         actualizar();
-        setInterval(actualizar, 30000);
+        setInterval(actualizar, 30000); // Se actualiza cada 30 segundos
     </script>
 </body>
 </html>

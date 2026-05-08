@@ -11,7 +11,6 @@
         .reloj { font-size: 18px; color: #007bff; font-weight: bold; background: #333; padding: 10px 20px; border-radius: 8px; border: 1px solid #444; }
         h2 { margin: 0; color: #ecf0f1; font-size: 24px; }
         
-        /* ALERTA ROJA PARA EL GUARDIA */
         .alert-turno { background: #ff0000; color: white; padding: 20px; border-radius: 8px; font-weight: bold; margin-bottom: 20px; display: none; text-align: center; font-size: 24px; border: 4px solid white; animation: parpadeo 1s infinite; }
         @keyframes parpadeo { 0% {opacity: 1;} 50% {opacity: 0.7;} 100% {opacity: 1;} }
 
@@ -19,10 +18,7 @@
         th, td { border: 1px solid #444; padding: 12px; text-align: left; }
         th { background-color: #007bff; color: white; text-transform: uppercase; font-size: 13px; }
         
-        /* ROJO: Personal de trabajo fuera de hora o de días anteriores */
         .row-critico { background-color: #ff0000 !important; color: #fff !important; font-weight: bold; }
-        
-        /* AMARILLO: Visitas de más de 2 días */
         .row-antiguo { background-color: #f1c40f !important; color: #000 !important; font-weight: bold; }
         
         .count { background: #007bff; padding: 2px 12px; border-radius: 15px; font-size: 16px; margin-left: 10px; }
@@ -36,7 +32,7 @@
             <div id="relojActual" class="reloj">Cargando...</div>
         </div>
         
-        <div id="alertaHorario" class="alert-turno">⚠️ ¡ALERTA! PERSONAL DE TRABAJO EN HORARIO O DÍA NO PERMITIDO ⚠️</div>
+        <div id="alertaHorario" class="alert-turno">⚠️ ¡ALERTA! PERSONAL NO AUTORIZADO (DÍA O HORA NO PERMITIDA) ⚠️</div>
         
         <table id="tablaAdentro">
             <thead>
@@ -62,6 +58,12 @@
             document.getElementById('relojActual').innerText = ahora.toLocaleDateString('es-AR', opciones);
         }
 
+        function esFinDeSemana() {
+            const ahora = new Date();
+            const diaSemana = ahora.getDay(); // 0 es domingo, 6 es sábado
+            return (diaSemana === 0 || diaSemana === 6);
+        }
+
         function esHoraRestringida() {
             const ahora = new Date();
             const hora = parseInt(ahora.toLocaleString("es-AR", {hour: '2-digit', hour12: false, timeZone: "America/Argentina/Buenos_Aires"}));
@@ -79,11 +81,11 @@
                     
                     const ahora = new Date();
                     const hoyTexto = ahora.toLocaleDateString('es-AR', { timeZone: "America/Argentina/Buenos_Aires" });
-                    const restringido = esHoraRestringida();
+                    const restringidoHora = esHoraRestringida();
+                    const esFinde = esFinDeSemana();
 
                     document.getElementById("contador").innerText = data.length;
                     
-                    // Ordenar por fecha y hora (más reciente arriba)
                     data.sort((a, b) => {
                         const [dA, mA, yA] = a.fecha.split('/');
                         const [hA, minA] = a.hora.split(':');
@@ -94,23 +96,25 @@
 
                     data.forEach(p => {
                         let fila = document.createElement("tr");
-                        
-                        // Parsear fechas para comparar
                         const partesFecha = p.fecha.split('/');
                         const fechaIngreso = new Date(partesFecha[2], partesFecha[1] - 1, partesFecha[0]);
                         const esDeHoy = p.fecha === hoyTexto;
                         const diferenciaDias = (ahora - fechaIngreso) / (1000 * 60 * 60 * 24);
 
-                        const esPersonalDeTrabajo = ["Jardinero", "Piletero", "Carpintero", "Albañil", "Plomero", "Empleada Doméstica", "Otros"].includes(p.calidad);
+                        // Definimos quiénes NO son visita ni domésticas (el resto es personal de obra/mantenimiento)
+                        const esPersonalDeObra = !["Visita", "Empleada Doméstica"].includes(p.calidad);
 
-                        // --- NUEVA LÓGICA DE ALERTAS ---
+                        // --- LÓGICA DE ALERTAS ---
                         
-                        // 1. ROJO CRÍTICO: Personal de trabajo fuera de hora HOY O que quedó de días anteriores
-                        if (esPersonalDeTrabajo && (restringido || !esDeHoy)) {
+                        // 1. ROJO CRÍTICO: 
+                        // - Si es personal de obra y es fin de semana.
+                        // - Si es personal de obra y está fuera de horario (7 a 18hs).
+                        // - Si es personal de obra y quedó de un día anterior.
+                        if (esPersonalDeObra && (esFinde || restringidoHora || !esDeHoy)) {
                             fila.className = "row-critico";
                             alertaActiva = true;
                         } 
-                        // 2. AMARILLO: Solo Visitas con más de 2 días adentro
+                        // 2. AMARILLO: Visitas que llevan más de 2 días.
                         else if (p.calidad === "Visita" && diferenciaDias >= 2) {
                             fila.className = "row-antiguo";
                         }
